@@ -3,11 +3,28 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
 import { API_URL } from '@/config/index'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import styles from '@/styles/Event.module.css'
+import { useRouter } from 'next/router'
 
 export default function EventPage({ evt }) {
-   const deleteEvent = (e) => {
-      console.log('delete')
+   const router = useRouter()
+
+   const deleteEvent = async (e) => {
+      if (confirm('Are you sure?')) {
+         const res = await fetch(`${API_URL}/events/${evt.id}`, {
+            method: 'DELETE',
+         })
+
+         const data = await res.json()
+
+         if (!res.ok) {
+            toast.error(data.error)
+         } else {
+            router.push('/events')
+         }
+      }
    }
 
    return (
@@ -23,6 +40,9 @@ export default function EventPage({ evt }) {
                   <FaTimes /> Delete Event
                </a>
             </div>
+
+            <ToastContainer />
+
             <span>
                {evt.date} at {evt.time}
             </span>
@@ -64,13 +84,6 @@ export async function getStaticPaths() {
       paths,
       fallback: true, //If false: Show 404 if the slug is not found
    }
-   // return {
-   //    paths: [
-   //       {params: {id/slug:1}},
-   //       {params: {id:2}},
-   //       {params: {id:3}},
-   //    ]
-   // }
 }
 
 export async function getStaticProps({ params: { slug } }) {
